@@ -1,7 +1,8 @@
-package com.example.datasynchronizationtool.service;
+package com.example.datasynchronizationtool.service.impl;
 
 import com.example.datasynchronizationtool.model.SyncConfiguration;
 import com.example.datasynchronizationtool.repository.SyncConfigurationRepository;
+import com.example.datasynchronizationtool.service.ISyncConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
