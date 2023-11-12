@@ -1,17 +1,16 @@
 package com.example.datasynchronizationtool.service;
 
-import com.example.datasynchronizationtool.model.FieldMapping;
+import com.example.datasynchronizationtool.service.dtos.FieldMappingDto;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface IFieldMappingService {
 
-    List<FieldMapping> getAllFieldMappings();
+    List<FieldMappingDto> getAllFieldMappings();
 
-    Optional<FieldMapping> getFieldMappingById(Long id);
+    FieldMappingDto getFieldMappingById(Long id);
 
-    FieldMapping saveFieldMapping(FieldMapping fieldMapping);
+    FieldMappingDto saveFieldMapping(FieldMappingDto fieldMappingDto);
 
     void deleteFieldMapping(Long id);
 }

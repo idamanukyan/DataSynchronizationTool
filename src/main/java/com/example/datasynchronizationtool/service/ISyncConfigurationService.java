@@ -1,17 +1,16 @@
 package com.example.datasynchronizationtool.service;
 
-import com.example.datasynchronizationtool.model.SyncConfiguration;
+import com.example.datasynchronizationtool.service.dtos.SyncConfigurationDto;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ISyncConfigurationService {
 
-    List<SyncConfiguration> getAllSyncConfigurations();
+    List<SyncConfigurationDto> getAllSyncConfigurations();
 
-    Optional<SyncConfiguration> getSyncConfigurationById(Long id);
+    SyncConfigurationDto getSyncConfigurationById(Long id);
 
-    SyncConfiguration saveSyncConfiguration(SyncConfiguration syncConfiguration);
+    SyncConfigurationDto saveSyncConfiguration(SyncConfigurationDto syncConfiguration);
 
     void deleteSyncConfiguration(Long id);
 }

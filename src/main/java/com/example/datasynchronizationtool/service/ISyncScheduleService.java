@@ -1,16 +1,15 @@
 package com.example.datasynchronizationtool.service;
 
-import com.example.datasynchronizationtool.model.SyncSchedule;
+import com.example.datasynchronizationtool.service.dtos.SyncScheduleDto;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ISyncScheduleService {
-    List<SyncSchedule> getAllSyncSchedules();
+    List<SyncScheduleDto> getAllSyncSchedules();
 
-    Optional<SyncSchedule> getSyncScheduleById(Long id);
+    SyncScheduleDto getSyncScheduleById(Long id);
 
-    SyncSchedule saveSyncSchedule(SyncSchedule syncSchedule);
+    SyncScheduleDto saveSyncSchedule(SyncScheduleDto syncSchedule);
 
     void deleteSyncSchedule(Long id);
 

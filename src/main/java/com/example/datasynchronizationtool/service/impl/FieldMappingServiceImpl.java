@@ -3,34 +3,45 @@ package com.example.datasynchronizationtool.service.impl;
 import com.example.datasynchronizationtool.model.FieldMapping;
 import com.example.datasynchronizationtool.repository.FieldMappingRepository;
 import com.example.datasynchronizationtool.service.IFieldMappingService;
+import com.example.datasynchronizationtool.service.dtos.FieldMappingDto;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FieldMappingServiceImpl implements IFieldMappingService {
+
     private final FieldMappingRepository fieldMappingRepository;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public FieldMappingServiceImpl(FieldMappingRepository fieldMappingRepository) {
+    public FieldMappingServiceImpl(FieldMappingRepository fieldMappingRepository, ModelMapper modelMapper) {
         this.fieldMappingRepository = fieldMappingRepository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public List<FieldMapping> getAllFieldMappings() {
-        return fieldMappingRepository.findAll();
+    public List<FieldMappingDto> getAllFieldMappings() {
+        return fieldMappingRepository.findAll().stream()
+                .map(fieldMapping -> modelMapper.map(fieldMapping, FieldMappingDto.class))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<FieldMapping> getFieldMappingById(Long id) {
-        return fieldMappingRepository.findById(id);
+    public FieldMappingDto getFieldMappingById(Long id) {
+        return fieldMappingRepository.findById(id)
+                .map(fieldMapping -> modelMapper.map(fieldMapping, FieldMappingDto.class))
+                .orElse(null);
     }
 
     @Override
-    public FieldMapping saveFieldMapping(FieldMapping fieldMapping) {
-        return fieldMappingRepository.save(fieldMapping);
+    public FieldMappingDto saveFieldMapping(FieldMappingDto fieldMappingDto) {
+        FieldMapping fieldMapping = modelMapper.map(fieldMappingDto, FieldMapping.class);
+        FieldMapping saved = fieldMappingRepository.save(fieldMapping);
+        return modelMapper.map(saved, FieldMappingDto.class);
     }
 
     @Override

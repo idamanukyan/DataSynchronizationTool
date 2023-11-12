@@ -1,16 +1,15 @@
 package com.example.datasynchronizationtool.service;
 
-import com.example.datasynchronizationtool.model.SyncLog;
+import com.example.datasynchronizationtool.service.dtos.SyncLogDto;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ISyncLogService {
-    List<SyncLog> getAllSyncLogs();
+    List<SyncLogDto> getAllSyncLogs();
 
-    Optional<SyncLog> getSyncLogById(Long id);
+    SyncLogDto getSyncLogById(Long id);
 
-    SyncLog saveSyncLog(SyncLog syncLog);
+    SyncLogDto saveSyncLog(SyncLogDto syncLog);
 
     void deleteSyncLog(Long id);
 }

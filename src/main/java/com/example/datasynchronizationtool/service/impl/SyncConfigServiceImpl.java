@@ -3,36 +3,45 @@ package com.example.datasynchronizationtool.service.impl;
 import com.example.datasynchronizationtool.model.SyncConfiguration;
 import com.example.datasynchronizationtool.repository.SyncConfigurationRepository;
 import com.example.datasynchronizationtool.service.ISyncConfigurationService;
+import com.example.datasynchronizationtool.service.dtos.SyncConfigurationDto;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-
+import java.util.stream.Collectors;
 
 @Service
 public class SyncConfigServiceImpl implements ISyncConfigurationService {
 
     private final SyncConfigurationRepository syncConfigurationRepository;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public SyncConfigServiceImpl(SyncConfigurationRepository syncConfigurationRepository) {
+    public SyncConfigServiceImpl(SyncConfigurationRepository syncConfigurationRepository, ModelMapper modelMapper) {
         this.syncConfigurationRepository = syncConfigurationRepository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public List<SyncConfiguration> getAllSyncConfigurations() {
-        return syncConfigurationRepository.findAll();
+    public List<SyncConfigurationDto> getAllSyncConfigurations() {
+        return syncConfigurationRepository.findAll().stream()
+                .map(syncConfiguration -> modelMapper.map(syncConfiguration, SyncConfigurationDto.class))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<SyncConfiguration> getSyncConfigurationById(Long id) {
-        return syncConfigurationRepository.findById(id);
+    public SyncConfigurationDto getSyncConfigurationById(Long id) {
+        return syncConfigurationRepository.findById(id)
+                .map(syncConfiguration -> modelMapper.map(syncConfiguration, SyncConfigurationDto.class))
+                .orElse(null);
     }
 
     @Override
-    public SyncConfiguration saveSyncConfiguration(SyncConfiguration syncConfiguration) {
-        return syncConfigurationRepository.save(syncConfiguration);
+    public SyncConfigurationDto saveSyncConfiguration(SyncConfigurationDto syncConfigurationDto) {
+        SyncConfiguration syncConfiguration = modelMapper.map(syncConfigurationDto, SyncConfiguration.class);
+        SyncConfiguration saved = syncConfigurationRepository.save(syncConfiguration);
+        return modelMapper.map(saved, SyncConfigurationDto.class);
     }
 
     @Override
