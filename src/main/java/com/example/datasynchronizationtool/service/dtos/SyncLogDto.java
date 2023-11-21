@@ -1,12 +1,13 @@
 package com.example.datasynchronizationtool.service.dtos;
 
-import com.example.datasynchronizationtool.model.SyncConfiguration;
+import lombok.Builder;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 
+@Builder
 public class SyncLogDto {
 
     private Long id;
@@ -21,7 +22,10 @@ public class SyncLogDto {
     private String message;
     @NotEmpty
     @NotNull
-    private SyncConfiguration syncConfiguration;
+    private SyncConfigurationDto syncConfiguration;
+
+    public SyncLogDto() {
+    }
 
     public void setId(Long id) {
         this.id = id;
@@ -39,7 +43,7 @@ public class SyncLogDto {
         this.message = message;
     }
 
-    public void setSyncConfiguration(SyncConfiguration syncConfiguration) {
+    public void setSyncConfiguration(SyncConfigurationDto syncConfiguration) {
         this.syncConfiguration = syncConfiguration;
     }
 }

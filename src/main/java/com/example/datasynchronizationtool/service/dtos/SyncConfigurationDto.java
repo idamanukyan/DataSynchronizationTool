@@ -63,4 +63,36 @@ public class SyncConfigurationDto {
     public void setSyncSchedule(SyncSchedule syncSchedule) {
         this.syncSchedule = syncSchedule;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getSourceSystem() {
+        return sourceSystem;
+    }
+
+    public String getTargetSystem() {
+        return targetSystem;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public List<FieldMapping> getFieldMappings() {
+        return fieldMappings;
+    }
+
+    public SyncSchedule getSyncSchedule() {
+        return syncSchedule;
+    }
 }
