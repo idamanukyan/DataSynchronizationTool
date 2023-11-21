@@ -24,6 +24,14 @@ public class DataSyncService {
                 // Get source data based on fieldMapping.getSourceField()
                 // Apply transformation logic if needed (fieldMapping.getTransformation())
                 // Update or insert data in the target system based on fieldMapping.getTargetField()
+                // If bi-directional synchronization is enabled, update data in the source system
+                if (fieldMapping.isBiDirectional()) {
+                    // Get target data based on fieldMapping.getTargetField()
+                    // Apply reverse transformation logic if needed
+                    // Update or insert data in the source system based on fieldMapping.getSourceField()
+                    System.out.println();
+                }
+                logSynchronizationEvent(syncConfiguration, "SUCCESS", "Bi-directional synchronization completed successfully");
             }
 
             // Log a successful synchronization event

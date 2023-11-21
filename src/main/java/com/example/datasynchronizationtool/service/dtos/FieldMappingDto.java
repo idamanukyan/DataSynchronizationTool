@@ -15,6 +15,9 @@ public class FieldMappingDto {
     @NotEmpty
     @NotNull
     private String transformation;
+    @NotEmpty
+    @NotNull
+    private boolean isBiDirectional;
 
     public void setId(Long id) {
         this.id = id;
