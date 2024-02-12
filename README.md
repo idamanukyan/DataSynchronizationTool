@@ -55,7 +55,7 @@ Integration with popular cloud services for data storage and synchronization.
 Support for real-time synchronization using messaging queues.
 
 
-Technical Documentation:
+**Technical Documentation:**
 
 Models:
 
@@ -86,6 +86,4 @@ SyncSchedule:
 Represents a schedule for synchronization tasks.
 Uses a cron expression to define when synchronization should occur.
 Associated with a specific SyncConfiguration in a one-to-one relationship.
-
-
 
