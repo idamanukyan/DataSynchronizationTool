@@ -2,97 +2,36 @@ package com.example.datasynchronizationtool.service.dtos;
 
 import com.example.datasynchronizationtool.model.FieldMapping;
 import com.example.datasynchronizationtool.model.SyncSchedule;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SyncConfigurationDto {
 
     private Long id;
-    @NotEmpty
-    @NotNull
+
+    @NotBlank
     private String name;
-    @NotEmpty
-    @NotNull
+
     private String description;
-    @NotEmpty
-    @NotNull
+
+    @NotBlank
     private String sourceSystem;
-    @NotEmpty
-    @NotNull
+
+    @NotBlank
     private String targetSystem;
-    @NotEmpty
-    @NotNull
+
     private boolean isActive;
-    @NotEmpty
-    @NotNull
+
     private List<FieldMapping> fieldMappings;
-    @NotEmpty
-    @NotNull
+
     private SyncSchedule syncSchedule;
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setSourceSystem(String sourceSystem) {
-        this.sourceSystem = sourceSystem;
-    }
-
-    public void setTargetSystem(String targetSystem) {
-        this.targetSystem = targetSystem;
-    }
-
-    public void setActive(boolean active) {
-        isActive = active;
-    }
-
-    public void setFieldMappings(List<FieldMapping> fieldMappings) {
-        this.fieldMappings = fieldMappings;
-    }
-
-    public void setSyncSchedule(SyncSchedule syncSchedule) {
-        this.syncSchedule = syncSchedule;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getSourceSystem() {
-        return sourceSystem;
-    }
-
-    public String getTargetSystem() {
-        return targetSystem;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public List<FieldMapping> getFieldMappings() {
-        return fieldMappings;
-    }
-
-    public SyncSchedule getSyncSchedule() {
-        return syncSchedule;
-    }
 }

@@ -1,49 +1,32 @@
 package com.example.datasynchronizationtool.service.dtos;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SyncLogDto {
 
     private Long id;
-    @NotEmpty
+
     @NotNull
     private LocalDateTime timestamp;
-    @NotEmpty
-    @NotNull
+
+    @NotBlank
     private String status;
-    @NotEmpty
-    @NotNull
+
+    @NotBlank
     private String message;
-    @NotEmpty
+
     @NotNull
     private SyncConfigurationDto syncConfiguration;
-
-    public SyncLogDto() {
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public void setSyncConfiguration(SyncConfigurationDto syncConfiguration) {
-        this.syncConfiguration = syncConfiguration;
-    }
 }
