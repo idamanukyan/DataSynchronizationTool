@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -25,7 +26,7 @@ public class GenericDataRepository {
     private final Map<String, NamedParameterJdbcTemplate> jdbcTemplates;
 
     public GenericDataRepository() {
-        this.jdbcTemplates = new HashMap<>();
+        this.jdbcTemplates = new ConcurrentHashMap<>();
     }
 
     /**
