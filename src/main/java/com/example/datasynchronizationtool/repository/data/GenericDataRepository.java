@@ -201,7 +201,7 @@ public class GenericDataRepository {
 
     /**
      * Upsert (insert or update) a record in a table.
-     * First checks if the record exists, then inserts or updates accordingly.
+     * Uses MySQL's INSERT ... ON DUPLICATE KEY UPDATE for efficient single-query upsert.
      *
      * @param systemName      The name of the system/datasource
      * @param tableName       The table to upsert into
@@ -211,20 +211,43 @@ public class GenericDataRepository {
      */
     public boolean upsertData(String systemName, String tableName, Map<String, Object> data,
                               String primaryKeyField) {
-        Object primaryKeyValue = data.get(primaryKeyField);
-        if (primaryKeyValue == null) {
-            // No primary key value, do insert
-            insertData(systemName, tableName, data);
-            return true;
+        NamedParameterJdbcTemplate jdbc = getJdbcTemplate(systemName);
+
+        List<String> fields = new ArrayList<>(data.keySet());
+        String fieldList = fields.stream()
+                .map(this::escapeIdentifier)
+                .collect(Collectors.joining(", "));
+        String valueList = fields.stream()
+                .map(f -> ":" + f)
+                .collect(Collectors.joining(", "));
+
+        // Build ON DUPLICATE KEY UPDATE clause (exclude primary key from updates)
+        String updateClause = fields.stream()
+                .filter(f -> !f.equals(primaryKeyField))
+                .map(f -> escapeIdentifier(f) + " = VALUES(" + escapeIdentifier(f) + ")")
+                .collect(Collectors.joining(", "));
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO ").append(escapeIdentifier(tableName));
+        sql.append(" (").append(fieldList).append(")");
+        sql.append(" VALUES (").append(valueList).append(")");
+
+        if (!updateClause.isEmpty()) {
+            sql.append(" ON DUPLICATE KEY UPDATE ").append(updateClause);
         }
 
-        // Check if record exists
-        if (recordExists(systemName, tableName, primaryKeyField, primaryKeyValue)) {
-            updateData(systemName, tableName, data, primaryKeyField, primaryKeyValue);
-            return false;
-        } else {
-            insertData(systemName, tableName, data);
-            return true;
+        log.debug("Executing upsert: {}", sql);
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        data.forEach(params::addValue);
+
+        try {
+            int rowsAffected = jdbc.update(sql.toString(), params);
+            // MySQL returns 1 for insert, 2 for update (row matched + row changed)
+            return rowsAffected == 1;
+        } catch (DataAccessException e) {
+            log.error("Failed to upsert data into {}.{}: {}", systemName, tableName, e.getMessage());
+            throw e;
         }
     }
 

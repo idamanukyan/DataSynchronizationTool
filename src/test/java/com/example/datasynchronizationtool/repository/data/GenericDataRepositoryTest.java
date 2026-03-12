@@ -20,8 +20,10 @@ class GenericDataRepositoryTest {
     void setUp() {
         repository = new GenericDataRepository();
 
+        // Use H2 with MySQL compatibility mode for ON DUPLICATE KEY UPDATE support
         dataSource = new EmbeddedDatabaseBuilder()
                 .setType(EmbeddedDatabaseType.H2)
+                .setName("testdb;MODE=MySQL")
                 .addScript("classpath:test-schema.sql")
                 .build();
 
