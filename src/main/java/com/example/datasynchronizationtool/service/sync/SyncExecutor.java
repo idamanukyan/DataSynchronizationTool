@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class SyncExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(SyncExecutor.class);
+    private static final int DEFAULT_BATCH_SIZE = 1000;
 
     private final GenericDataRepository dataRepository;
     private final TransformationEngine transformationEngine;
@@ -63,12 +64,17 @@ public class SyncExecutor {
             Map<String, List<FieldMapping>> mappingsBySourceTable = groupMappingsBySourceTable(
                     config.getFieldMappings());
 
+            // Determine batch size
+            int batchSize = config.getBatchSize() != null && config.getBatchSize() > 0
+                    ? config.getBatchSize()
+                    : DEFAULT_BATCH_SIZE;
+
             // Process each table
             for (Map.Entry<String, List<FieldMapping>> entry : mappingsBySourceTable.entrySet()) {
                 String sourceTable = entry.getKey();
                 List<FieldMapping> mappings = entry.getValue();
 
-                processTableSync(sourceInfo, targetInfo, sourceTable, mappings, result);
+                processTableSync(sourceInfo, targetInfo, sourceTable, mappings, result, batchSize);
             }
 
             result.complete();
@@ -133,12 +139,12 @@ public class SyncExecutor {
     }
 
     /**
-     * Process synchronization for a single source table.
+     * Process synchronization for a single source table with pagination support.
      */
     private void processTableSync(SystemInfo sourceInfo, SystemInfo targetInfo,
                                    String sourceTable, List<FieldMapping> mappings,
-                                   SyncResult result) {
-        log.debug("Processing table sync: {} -> {}", sourceTable, getTargetTable(mappings));
+                                   SyncResult result, int batchSize) {
+        log.debug("Processing table sync: {} -> {} (batch size: {})", sourceTable, getTargetTable(mappings), batchSize);
 
         // Extract source fields to read
         List<String> sourceFields = mappings.stream()
@@ -152,32 +158,49 @@ public class SyncExecutor {
             sourceFields.add(0, primaryKeyField);
         }
 
-        // Read data from source
-        List<Map<String, Object>> sourceData;
-        try {
-            sourceData = dataRepository.readData(sourceInfo.systemName, sourceTable, sourceFields);
-            result.incrementRecordsRead(sourceData.size());
-            log.debug("Read {} records from source table {}", sourceData.size(), sourceTable);
-        } catch (Exception e) {
-            log.error("Failed to read data from source: {}", e.getMessage());
-            result.addError(sourceTable, "Failed to read source data: " + e.getMessage(), e);
-            return;
-        }
+        // Process data in batches using pagination
+        int offset = 0;
+        boolean hasMoreData = true;
 
-        if (sourceData.isEmpty()) {
-            log.debug("No data to synchronize from table {}", sourceTable);
-            result.addWarning("No data found in source table: " + sourceTable);
-            return;
-        }
-
-        // Process each record
-        for (Map<String, Object> sourceRecord : sourceData) {
+        while (hasMoreData) {
+            List<Map<String, Object>> sourceData;
             try {
-                processRecord(sourceInfo, targetInfo, sourceRecord, mappings, primaryKeyField, result);
+                sourceData = dataRepository.readDataPaginated(
+                        sourceInfo.systemName, sourceTable, sourceFields, null, null, offset, batchSize);
+                result.incrementRecordsRead(sourceData.size());
+                log.debug("Read batch of {} records from source table {} (offset: {})",
+                        sourceData.size(), sourceTable, offset);
             } catch (Exception e) {
-                log.error("Failed to process record: {}", e.getMessage());
-                result.addError(sourceTable, "Failed to process record: " + e.getMessage(), e);
-                result.incrementRecordsFailed();
+                log.error("Failed to read data from source: {}", e.getMessage());
+                result.addError(sourceTable, "Failed to read source data: " + e.getMessage(), e);
+                return;
+            }
+
+            if (sourceData.isEmpty()) {
+                if (offset == 0) {
+                    log.debug("No data to synchronize from table {}", sourceTable);
+                    result.addWarning("No data found in source table: " + sourceTable);
+                }
+                hasMoreData = false;
+                continue;
+            }
+
+            // Process each record in the batch
+            for (Map<String, Object> sourceRecord : sourceData) {
+                try {
+                    processRecord(sourceInfo, targetInfo, sourceRecord, mappings, primaryKeyField, result);
+                } catch (Exception e) {
+                    log.error("Failed to process record: {}", e.getMessage());
+                    result.addError(sourceTable, "Failed to process record: " + e.getMessage(), e);
+                    result.incrementRecordsFailed();
+                }
+            }
+
+            // Check if we've processed all data
+            if (sourceData.size() < batchSize) {
+                hasMoreData = false;
+            } else {
+                offset += batchSize;
             }
         }
 
@@ -373,15 +396,29 @@ public class SyncExecutor {
 
     /**
      * Determine the primary key field from mappings.
-     * Convention: field named "id" or ending with "_id" or marked somehow.
+     * Priority: 1) Explicitly marked primary key field
+     *           2) Field named "id"
+     *           3) Field ending with "_id"
+     *           4) Default to "id"
      */
     private String determinePrimaryKey(List<FieldMapping> mappings) {
+        // First, look for explicitly marked primary key
+        for (FieldMapping mapping : mappings) {
+            if (mapping.isPrimaryKey()) {
+                String sourceField = extractFieldName(mapping.getSourceField());
+                log.debug("Using explicitly configured primary key: {}", sourceField);
+                return sourceField;
+            }
+        }
+
+        // Fall back to naming convention: look for "id" field
         for (FieldMapping mapping : mappings) {
             String sourceField = extractFieldName(mapping.getSourceField());
             if ("id".equalsIgnoreCase(sourceField)) {
                 return sourceField;
             }
         }
+
         // Try to find a field ending with _id
         for (FieldMapping mapping : mappings) {
             String sourceField = extractFieldName(mapping.getSourceField());
@@ -389,14 +426,27 @@ public class SyncExecutor {
                 return sourceField;
             }
         }
+
         // Default to "id"
+        log.warn("No primary key found in mappings, defaulting to 'id'");
         return "id";
     }
 
     /**
      * Determine the target primary key field.
+     * Priority: 1) Explicitly marked primary key field
+     *           2) Field named "id"
+     *           3) Default to "id"
      */
     private String determineTargetPrimaryKey(List<FieldMapping> mappings) {
+        // First, look for explicitly marked primary key
+        for (FieldMapping mapping : mappings) {
+            if (mapping.isPrimaryKey()) {
+                return extractFieldName(mapping.getTargetField());
+            }
+        }
+
+        // Fall back to naming convention
         for (FieldMapping mapping : mappings) {
             String targetField = extractFieldName(mapping.getTargetField());
             if ("id".equalsIgnoreCase(targetField)) {

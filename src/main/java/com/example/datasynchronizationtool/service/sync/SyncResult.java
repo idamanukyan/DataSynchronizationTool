@@ -107,6 +107,10 @@ public class SyncResult {
         return Duration.between(startTime, end);
     }
 
+    public long getDurationMs() {
+        return getDuration().toMillis();
+    }
+
     public String getSummary() {
         StringBuilder sb = new StringBuilder();
         sb.append("Synchronization ").append(status.name());

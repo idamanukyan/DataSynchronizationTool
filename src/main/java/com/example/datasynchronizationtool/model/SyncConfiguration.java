@@ -35,6 +35,9 @@ public class SyncConfiguration {
     @Column(name = "is_active")
     private boolean isActive;
 
+    @Column(name = "batch_size")
+    private Integer batchSize;
+
     @OneToMany(mappedBy = "syncConfiguration", cascade = CascadeType.ALL)
     private List<FieldMapping> fieldMappings;
 

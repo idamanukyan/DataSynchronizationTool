@@ -1,0 +1,18 @@
+# Local Development Configuration Template
+# Copy this file to application-local.properties and fill in your values
+# NEVER commit application-local.properties to version control
+
+# Configuration Database (stores sync configurations)
+DB_CONFIG_URL=jdbc:mysql://localhost:3306/sync_config_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+DB_CONFIG_USERNAME=your_username
+DB_CONFIG_PASSWORD=your_password
+
+# Primary Sync Database (source/target for synchronization)
+DB_PRIMARY_URL=jdbc:mysql://localhost:3306/primary_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+DB_PRIMARY_USERNAME=your_username
+DB_PRIMARY_PASSWORD=your_password
+
+# Secondary Sync Database (source/target for synchronization)
+DB_SECONDARY_URL=jdbc:mysql://localhost:3306/secondary_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+DB_SECONDARY_USERNAME=your_username
+DB_SECONDARY_PASSWORD=your_password

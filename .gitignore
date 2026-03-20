@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Sensitive Configuration ###
+application-local.properties
+**/application-local.properties
+.env
+.env.local
+.env.*.local

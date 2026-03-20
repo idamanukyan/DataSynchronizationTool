@@ -24,4 +24,6 @@ public class FieldMappingDto {
     private String transformation;
 
     private boolean isBiDirectional;
+
+    private boolean isPrimaryKey;
 }

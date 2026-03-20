@@ -134,7 +134,7 @@ class SyncExecutorTest {
             record1.put("name", "john doe");
             sourceData.add(record1);
 
-            when(dataRepository.readData(eq("primary"), eq("users"), anyList()))
+            when(dataRepository.readDataPaginated(eq("primary"), eq("users"), anyList(), any(), any(), anyInt(), anyInt()))
                     .thenReturn(sourceData);
 
             // Mock upsert (return true for insert)
@@ -171,7 +171,7 @@ class SyncExecutorTest {
             record.put("name", "jane doe");
             sourceData.add(record);
 
-            when(dataRepository.readData(eq("primary"), eq("users"), anyList()))
+            when(dataRepository.readDataPaginated(eq("primary"), eq("users"), anyList(), any(), any(), anyInt(), anyInt()))
                     .thenReturn(sourceData);
 
             // Return false for update (not insert)
@@ -192,7 +192,7 @@ class SyncExecutorTest {
             SyncConfigurationDto config = createValidConfig();
 
             when(dataSourceRegistry.isDataSourceAvailable(anyString())).thenReturn(true);
-            when(dataRepository.readData(eq("primary"), eq("users"), anyList()))
+            when(dataRepository.readDataPaginated(eq("primary"), eq("users"), anyList(), any(), any(), anyInt(), anyInt()))
                     .thenReturn(Collections.emptyList());
 
             SyncResult result = syncExecutor.executeSynchronization(config);
@@ -213,7 +213,7 @@ class SyncExecutorTest {
             SyncConfigurationDto config = createValidConfig();
 
             when(dataSourceRegistry.isDataSourceAvailable(anyString())).thenReturn(true);
-            when(dataRepository.readData(anyString(), anyString(), anyList()))
+            when(dataRepository.readDataPaginated(anyString(), anyString(), anyList(), any(), any(), anyInt(), anyInt()))
                     .thenThrow(new RuntimeException("Database connection failed"));
 
             SyncResult result = syncExecutor.executeSynchronization(config);
@@ -253,7 +253,7 @@ class SyncExecutorTest {
             record2.put("name", "jane");
             sourceData.add(record2);
 
-            when(dataRepository.readData(eq("primary"), eq("users"), anyList()))
+            when(dataRepository.readDataPaginated(eq("primary"), eq("users"), anyList(), any(), any(), anyInt(), anyInt()))
                     .thenReturn(sourceData);
 
             // First call fails, second succeeds
@@ -309,7 +309,7 @@ class SyncExecutorTest {
             record.put("email", "JOHN@EXAMPLE.COM");
             sourceData.add(record);
 
-            when(dataRepository.readData(eq("primary"), eq("users"), anyList()))
+            when(dataRepository.readDataPaginated(eq("primary"), eq("users"), anyList(), any(), any(), anyInt(), anyInt()))
                     .thenReturn(sourceData);
             when(dataRepository.upsertData(eq("secondary"), eq("customers"), anyMap(), anyString()))
                     .thenReturn(true);

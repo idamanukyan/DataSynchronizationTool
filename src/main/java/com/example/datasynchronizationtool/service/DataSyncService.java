@@ -1,6 +1,7 @@
 package com.example.datasynchronizationtool.service;
 
 import com.example.datasynchronizationtool.exception.SyncFailedException;
+import com.example.datasynchronizationtool.metrics.SyncMetricsService;
 import com.example.datasynchronizationtool.service.dtos.SyncConfigurationDto;
 import com.example.datasynchronizationtool.service.dtos.SyncLogDto;
 import com.example.datasynchronizationtool.service.impl.SyncLogServiceImpl;
@@ -26,11 +27,14 @@ public class DataSyncService {
 
     private final SyncLogServiceImpl syncLogService;
     private final SyncExecutor syncExecutor;
+    private final SyncMetricsService metricsService;
 
     @Autowired
-    public DataSyncService(SyncLogServiceImpl syncLogService, SyncExecutor syncExecutor) {
+    public DataSyncService(SyncLogServiceImpl syncLogService, SyncExecutor syncExecutor,
+                           SyncMetricsService metricsService) {
         this.syncLogService = syncLogService;
         this.syncExecutor = syncExecutor;
+        this.metricsService = metricsService;
     }
 
     /**
@@ -43,6 +47,7 @@ public class DataSyncService {
         log.info("Starting synchronization for configuration: {} (id: {})",
                 syncConfiguration.getName(), syncConfiguration.getId());
 
+        metricsService.recordSyncStarted();
         SyncResult result = null;
 
         try {
@@ -50,11 +55,16 @@ public class DataSyncService {
             if (syncConfiguration.getFieldMappings() == null || syncConfiguration.getFieldMappings().isEmpty()) {
                 log.warn("No field mappings found for configuration: {}", syncConfiguration.getName());
                 logSynchronizationEvent(syncConfiguration, "WARNING", "No field mappings configured");
+                metricsService.recordSyncFailed();
                 return;
             }
 
             // Execute the synchronization
             result = syncExecutor.executeSynchronization(syncConfiguration);
+
+            // Record metrics
+            metricsService.recordSyncCompleted(result);
+            metricsService.recordSyncByConfiguration(syncConfiguration.getName(), result);
 
             // Log the result
             String status = mapResultStatus(result.getStatus());
@@ -77,6 +87,7 @@ public class DataSyncService {
             log.error("Synchronization failed for configuration: {} (id: {})",
                     syncConfiguration.getName(), syncConfiguration.getId(), e);
             logSynchronizationEvent(syncConfiguration, "ERROR", errorMessage);
+            metricsService.recordSyncFailed();
             throw e;
 
         } catch (Exception e) {
@@ -84,6 +95,7 @@ public class DataSyncService {
             log.error("Unexpected error during synchronization for configuration: {} (id: {})",
                     syncConfiguration.getName(), syncConfiguration.getId(), e);
             logSynchronizationEvent(syncConfiguration, "ERROR", errorMessage);
+            metricsService.recordSyncFailed();
 
             throw new SyncFailedException(
                     syncConfiguration.getId(),
@@ -105,6 +117,8 @@ public class DataSyncService {
         log.info("Starting synchronization with result tracking for configuration: {} (id: {})",
                 syncConfiguration.getName(), syncConfiguration.getId());
 
+        metricsService.recordSyncStarted();
+
         try {
             if (syncConfiguration.getFieldMappings() == null || syncConfiguration.getFieldMappings().isEmpty()) {
                 log.warn("No field mappings found for configuration: {}", syncConfiguration.getName());
@@ -113,10 +127,14 @@ public class DataSyncService {
                 SyncResult emptyResult = new SyncResult(syncConfiguration.getId(), syncConfiguration.getName());
                 emptyResult.addWarning("No field mappings configured");
                 emptyResult.complete();
+                metricsService.recordSyncCompleted(emptyResult);
                 return CompletableFuture.completedFuture(emptyResult);
             }
 
             SyncResult result = syncExecutor.executeSynchronization(syncConfiguration);
+
+            metricsService.recordSyncCompleted(result);
+            metricsService.recordSyncByConfiguration(syncConfiguration.getName(), result);
 
             String status = mapResultStatus(result.getStatus());
             logSynchronizationEvent(syncConfiguration, status, result.getSummary());
@@ -127,6 +145,7 @@ public class DataSyncService {
             log.error("Synchronization failed for configuration: {} (id: {})",
                     syncConfiguration.getName(), syncConfiguration.getId(), e);
             logSynchronizationEvent(syncConfiguration, "ERROR", "Synchronization failed: " + e.getMessage());
+            metricsService.recordSyncFailed();
 
             return CompletableFuture.failedFuture(new SyncFailedException(
                     syncConfiguration.getId(),
@@ -147,6 +166,8 @@ public class DataSyncService {
         log.info("Executing synchronous synchronization for configuration: {} (id: {})",
                 syncConfiguration.getName(), syncConfiguration.getId());
 
+        metricsService.recordSyncStarted();
+
         try {
             if (syncConfiguration.getFieldMappings() == null || syncConfiguration.getFieldMappings().isEmpty()) {
                 log.warn("No field mappings found for configuration: {}", syncConfiguration.getName());
@@ -155,10 +176,14 @@ public class DataSyncService {
                 SyncResult emptyResult = new SyncResult(syncConfiguration.getId(), syncConfiguration.getName());
                 emptyResult.addWarning("No field mappings configured");
                 emptyResult.complete();
+                metricsService.recordSyncCompleted(emptyResult);
                 return emptyResult;
             }
 
             SyncResult result = syncExecutor.executeSynchronization(syncConfiguration);
+
+            metricsService.recordSyncCompleted(result);
+            metricsService.recordSyncByConfiguration(syncConfiguration.getName(), result);
 
             String status = mapResultStatus(result.getStatus());
             logSynchronizationEvent(syncConfiguration, status, result.getSummary());
@@ -169,6 +194,7 @@ public class DataSyncService {
             log.error("Synchronization failed for configuration: {} (id: {})",
                     syncConfiguration.getName(), syncConfiguration.getId(), e);
             logSynchronizationEvent(syncConfiguration, "ERROR", "Synchronization failed: " + e.getMessage());
+            metricsService.recordSyncFailed();
             throw e;
         }
     }

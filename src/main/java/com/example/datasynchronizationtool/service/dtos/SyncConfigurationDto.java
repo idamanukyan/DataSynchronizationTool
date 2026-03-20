@@ -31,6 +31,8 @@ public class SyncConfigurationDto {
 
     private boolean isActive;
 
+    private Integer batchSize;
+
     private List<FieldMapping> fieldMappings;
 
     private SyncSchedule syncSchedule;

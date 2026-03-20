@@ -68,6 +68,24 @@ public class GenericDataRepository {
      */
     public List<Map<String, Object>> readData(String systemName, String tableName, List<String> fields,
                                                String whereClause, Map<String, Object> params) {
+        return readDataPaginated(systemName, tableName, fields, whereClause, params, -1, -1);
+    }
+
+    /**
+     * Read records from a table with pagination support.
+     *
+     * @param systemName   The name of the system/datasource
+     * @param tableName    The table to read from
+     * @param fields       The fields to select
+     * @param whereClause  Optional WHERE clause (without the WHERE keyword)
+     * @param params       Parameters for the WHERE clause
+     * @param offset       Starting row offset (0-based), -1 to disable pagination
+     * @param limit        Maximum number of rows to return, -1 to disable pagination
+     * @return List of records as maps
+     */
+    public List<Map<String, Object>> readDataPaginated(String systemName, String tableName, List<String> fields,
+                                                        String whereClause, Map<String, Object> params,
+                                                        int offset, int limit) {
         NamedParameterJdbcTemplate jdbc = getJdbcTemplate(systemName);
 
         String fieldList = fields.stream()
@@ -80,6 +98,14 @@ public class GenericDataRepository {
 
         if (whereClause != null && !whereClause.trim().isEmpty()) {
             sql.append(" WHERE ").append(whereClause);
+        }
+
+        // Add pagination if specified
+        if (limit > 0) {
+            sql.append(" LIMIT ").append(limit);
+            if (offset > 0) {
+                sql.append(" OFFSET ").append(offset);
+            }
         }
 
         log.debug("Executing read query: {}", sql);

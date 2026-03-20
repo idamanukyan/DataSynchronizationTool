@@ -29,6 +29,9 @@ public class FieldMapping {
     @Column(name = "is_bi_directional")
     private boolean isBiDirectional;
 
+    @Column(name = "is_primary_key")
+    private boolean isPrimaryKey;
+
     @ManyToOne
     @JoinColumn(name = "sync_configuration_id")
     private SyncConfiguration syncConfiguration;
@@ -71,6 +74,14 @@ public class FieldMapping {
 
     public void setBiDirectional(boolean biDirectional) {
         isBiDirectional = biDirectional;
+    }
+
+    public boolean isPrimaryKey() {
+        return isPrimaryKey;
+    }
+
+    public void setPrimaryKey(boolean primaryKey) {
+        isPrimaryKey = primaryKey;
     }
 
     public SyncConfiguration getSyncConfiguration() {
